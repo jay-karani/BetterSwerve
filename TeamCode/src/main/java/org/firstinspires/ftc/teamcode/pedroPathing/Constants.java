@@ -1,13 +1,12 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
-import com.pedropathing.Drivetrain;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.ftc.FollowerBuilder;
-import com.pedropathing.ftc.localization.Encoder;
-import com.pedropathing.ftc.localization.constants.DriveEncoderConstants;
 import com.pedropathing.paths.PathConstraints;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+
+import org.firstinspires.ftc.teamcode.swerveDrive.SwerveDrivetrain;
 
 public class Constants {
 
@@ -19,6 +18,7 @@ public class Constants {
     public static Follower createFollower(HardwareMap hardwareMap) {
         return new FollowerBuilder(followerConstants, hardwareMap)
                 .pathConstraints(pathConstraints)
+                .setDrivetrain(new SwerveDrivetrain(hardwareMap))
                 .build();
     }
 }
