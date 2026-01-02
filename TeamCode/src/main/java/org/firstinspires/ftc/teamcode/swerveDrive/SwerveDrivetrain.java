@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.swerveDrive;
 
+import com.pedropathing.math.Vector;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.seattlesolvers.solverslib.hardware.motors.Motor;
@@ -36,27 +37,34 @@ public class SwerveDrivetrain extends CustomDrivetrain{
         angleErrors = new double[swerveModules.length];
         cachedAngles = new double[swerveModules.length];
 
-        voltageSensor = hwMap.get(VoltageSensor.class, "VoltageSensor");
+        voltageSensor = hwMap.get(VoltageSensor.class, "Control Hub");
     }
 
     @Override
     public void arcadeDrive(double forward, double strafe, double rotation) {
         double translateY = -forward;
         double strafeX = -strafe;
-        double realRotation = -rotation / (Math.sqrt(2));
+        double rotate = rotation;
 
         boolean joystickIsIdle = ((Math.abs(translateY) < SwerveConstants.JOYSTICK_DEADBAND) &&
-                (Math.abs(strafeX) < SwerveConstants.JOYSTICK_DEADBAND) && (Math.abs(realRotation) < SwerveConstants.JOYSTICK_DEADBAND));
+                (Math.abs(strafeX) < SwerveConstants.JOYSTICK_DEADBAND) && (Math.abs(rotation) < SwerveConstants.JOYSTICK_DEADBAND));
 
         for (int i = 0; i < swerveModules.length; i++){
-            double rotVectorX = swerveModules[i].getPodY() * realRotation,
-                    rotVectorY = swerveModules[i].getPodX() * -realRotation;
+            Vector translateVector = new Vector();
+            translateVector.setOrthogonalComponents(0, translateY);
 
-            double resultantX = strafeX + rotVectorX,
-                    resultantY = translateY + rotVectorY;
+            Vector strafeVector = new Vector();
+            strafeVector.setOrthogonalComponents(strafeX, 0);
 
-            wheelSpeeds[i] = Math.hypot(resultantX, resultantY);
-            targetHeadings[i] = (Math.atan2(resultantY, resultantX) + 2*Math.PI) % (2*Math.PI);
+            Vector rotateVector = new Vector();
+            rotateVector.setOrthogonalComponents(swerveModules[i].getPodX(), swerveModules[i].getPodY());
+            rotateVector.rotateVector(Math.PI/2);
+            rotateVector.setMagnitude(rotate);
+
+            Vector resultantVector = translateVector.plus(strafeVector).plus(rotateVector);
+
+            wheelSpeeds[i] = resultantVector.getMagnitude();
+            targetHeadings[i] = resultantVector.getTheta();
             currentHeadings[i] = swerveModules[i].getPodHeading();
 
             double tempDiff = Math.abs(targetHeadings[i] - currentHeadings[i]);
@@ -64,10 +72,10 @@ public class SwerveDrivetrain extends CustomDrivetrain{
 
         }
 
-        double powerScaling = Math.max(Math.max(wheelSpeeds[0], wheelSpeeds[1]),
+        double maxRequiredWheelPower = Math.max(Math.max(wheelSpeeds[0], wheelSpeeds[1]),
                 Math.max(wheelSpeeds[2], wheelSpeeds[3]));
-        if (powerScaling > 1){
-            for (int i = 0; i < swerveModules.length; i++){wheelSpeeds[i] /= powerScaling;}
+        if (maxRequiredWheelPower > 1){
+            for (int i = 0; i < swerveModules.length; i++){wheelSpeeds[i] /= maxRequiredWheelPower;}
         }
 
         for (int i = 0; i < swerveModules.length; i++){
@@ -85,9 +93,16 @@ public class SwerveDrivetrain extends CustomDrivetrain{
         }
 
         for (int i = 0; i < swerveModules.length; i++) {
-            double commandedAngle = joystickIsIdle ? cachedAngles[i] : targetHeadings[i];
-            swerveModules[i].rotateTo(commandedAngle);
-            swerveModules[i].setDrivePower(wheelSpeeds[i]);
+            if (!SwerveConstants.lockFormation){
+                double commandedAngle = joystickIsIdle ? cachedAngles[i] : targetHeadings[i];
+                swerveModules[i].rotateTo(commandedAngle);
+                swerveModules[i].setDrivePower(wheelSpeeds[i]);
+            } else{
+                Vector lockVector = new Vector();
+                lockVector.setOrthogonalComponents(swerveModules[i].getPodX(), swerveModules[i].getPodY());
+                swerveModules[i].rotateTo(lockVector.getTheta());
+                swerveModules[i].setDrivePower(0);
+            }
         }
     }
 

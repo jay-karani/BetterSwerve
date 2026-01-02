@@ -4,9 +4,6 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.seattlesolvers.solverslib.hardware.AbsoluteAnalogEncoder;
 import com.seattlesolvers.solverslib.hardware.motors.Motor;
-import com.seattlesolvers.solverslib.hardware.motors.MotorEx;
-
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 @TeleOp
 public class TestingOpMode extends OpMode {
@@ -31,7 +28,11 @@ public class TestingOpMode extends OpMode {
         //flServo.set(Math.PI/2);
         //telemetry.addData("flPos", flServo.getAbsoluteEncoder().getCurrentPosition());
         //telemetry.update();
-
+        swerve.startTeleopDrive();
         swerve.arcadeDrive(gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x);
+        swerve.updateConstants();
+        if (gamepad1.aWasPressed()){
+            SwerveConstants.lockFormation = !SwerveConstants.lockFormation;
+        }
     }
 }

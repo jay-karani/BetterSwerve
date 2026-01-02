@@ -7,7 +7,7 @@ import com.seattlesolvers.solverslib.hardware.motors.Motor;
 @Configurable
 public class SwerveConstants {
     public static boolean useFieldCentric = false;
-    public static boolean overrideDrive = false;
+    public static boolean lockFormation = false;
 
     public static double initialHeading = 0;
     public static Motor.ZeroPowerBehavior brakeModeTele = Motor.ZeroPowerBehavior.BRAKE;
