@@ -37,7 +37,7 @@ public class SwerveDrivetrain extends CustomDrivetrain{
         angleErrors = new double[swerveModules.length];
         cachedAngles = new double[swerveModules.length];
 
-        voltageSensor = hwMap.get(VoltageSensor.class, "Control Hub");
+        voltageSensor = hwMap.voltageSensor.iterator().next();
     }
 
     @Override
